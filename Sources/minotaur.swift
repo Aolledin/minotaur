@@ -123,25 +123,46 @@ func minotaur (location: Term) -> Goal {
 
 func path (from: Term, to: Term, through: Term) -> Goal {
   //Le cas ou le chemin reste sur place
-  return (through === MyListRooms.cons(element: from, list: MyListRooms.empty)) && from === to ||
+  return ((through === MyListRooms.cons(element: from, list: MyListRooms.empty)) && from === to) ||
   //head est le début de chemin, tail la fin, head2 et tail2 sont le début et la fin de tail
-  delayed(fresh{head in fresh{tail in fresh{head2 in fresh{tail2 in
+  (delayed(fresh{head in fresh{tail in fresh{head2 in fresh{tail2 in
   through === MyListRooms.cons(element: head, list: tail) && from === head &&
   //Ici, on vérifie qu'il y a bien une porte entre le premier et le deuxième élément du chemin.
   tail ===  MyListRooms.cons(element: head2, list: tail2) && doors(from:head, to:head2) &&
   //On vérifie que la fin du chemin est correcte aussi.
   path(from: head2, to: to, through: tail)
-}}}})
+}}}}))
 
 
 }
 
+//On agit récurcivement, pour voir si la batterie tient jusqu'à la fin, ou plus loin.
 func battery (through: Term, level: Term) -> Goal {
-    return list_size(list: through, size: level)
+    return list_size(list: through, size: level) ||
+    delayed(fresh{x in
+    level === succ(x) && battery(through: through, level: x)
+    })
+
 }
 
+//Cette fonction indique si un chemin passe par une certaine room
+//On cherche récurcivement si le premier élément de la liste restante est l'élément recherché.
+func is_in(room: Term, through: Term) -> Goal{
+  return delayed(fresh{head in fresh{tail in
+    through === MyListRooms.cons(element: head, list:tail) &&
+    (head === room || is_in(room: room, through: tail))
+  }})
+}
+
+
+//On vérifie toutes les conditions
 func winning (through: Term, level: Term) -> Goal {
-    // TODO
+  return delayed (fresh{entry in fresh{sorty in fresh{minotaur_loc in
+  entrance(location: entry) && exit(location: sorty) && minotaur(location: minotaur_loc) &&
+  path (from: entry, to: sorty, through: through) && is_in(room: minotaur_loc, through: through) &&
+  battery(through: through, level: level)
+  }}})
+
 }
 
 
