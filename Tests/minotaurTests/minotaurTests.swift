@@ -82,6 +82,24 @@ class minotaurTests: XCTestCase {
         XCTAssertEqual(resultsOf (goal: goal, variables: [through]).count, 1, "number of paths is incorrect")
     }
 
+    //Vérifie qu'un chemin simple marche bien (permet d'être sûr que l'erreur ne vient pas des portes)
+    func testSimplePath(){
+      let through = List.cons( room(4,3),  List.empty)
+      let goal = path(from: room(4,3), to: room(4,3), through: through)
+      for _ in solve (goal) {
+            print ("substitution found")
+        }
+    }
+
+    //idem
+    func testLessSimplePath(){
+      let through = List.cons(room(3,4), List.cons( room(2,4),  List.empty))
+      let goal = path(from: room(3,4), to: room(2,4), through: through)
+      for _ in solve (goal) {
+            print ("substitution found")
+        }
+    }
+
 
     static var allTests : [(String, (minotaurTests) -> () throws -> Void)] {
         return [
@@ -93,6 +111,8 @@ class minotaurTests: XCTestCase {
             ("testBattery", testBattery),
             ("testLosing", testLosing),
             ("testWinning", testWinning),
+            ("testSimplePath", testSimplePath),
+            ("testLessSimplePath", testLessSimplePath)
         ]
     }
 }
