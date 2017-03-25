@@ -28,6 +28,45 @@ struct Position : Equatable, CustomStringConvertible {
 
 }
 
+//Un chemin va être sous la forme de liste, on  construit la classe liste, comme aux exercices.
+
+enum MyListRooms: Term, CustomStringConvertible {
+    case empty
+      //En fait, les éléments seront des room, la classe a été copiée du corrigé des exercices sur git
+    case cons (element: Term, list: Term)
+    var description: String {
+      get {
+        switch (self) {
+        case .empty: return "[]"
+        case let .cons(element: e, list: l): return String (describing: e) + ":" + String (describing: l)
+        }
+      }
+    }
+    func equals(_ other: Term) -> Bool {
+        return (other is MyListRooms) && (other as! MyListRooms == self)
+    }
+    static func ==(lhs: MyListRooms, rhs: MyListRooms) -> Bool {
+        switch (lhs, rhs) {
+        case (let .cons(element: el, list: ll), let .cons(element: er, list: lr)):
+            return el.equals(er) && ll.equals(lr)
+        case (.empty, .empty):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+//J'ai aussi pris cette fonciton, pour comparer avec la batterie, adaptée pour coller avec nos naturels
+func list_size (list: Term, size: Term) -> Goal {
+    return (list === MyListRooms.empty && size === zero) ||
+      delayed (fresh { x in fresh { y in fresh { z in
+        (list === MyListRooms.cons (element: x, list: y)) &&
+        (size === succ (z)) &&
+        (list_size (list: y, size: z))
+      }}})
+}
+
 
 // rooms are numbered:
 // x:1,y:1 ... x:n,y:1
@@ -81,17 +120,24 @@ func minotaur (location: Term) -> Goal {
     return location === room(3, 2)
 }
 
-//Un chemin va être sous la forme de liste, on construit la classe liste, comme aux exercices.
-
-
 
 func path (from: Term, to: Term, through: Term) -> Goal {
-//TODO
+  //Le cas ou le chemin reste sur place
+  return (through === MyListRooms.cons(element: from, list: MyListRooms.empty)) && from === to ||
+  //head est le début de chemin, tail la fin, head2 et tail2 sont le début et la fin de tail
+  delayed(fresh{head in fresh{tail in fresh{head2 in fresh{tail2 in
+  through === MyListRooms.cons(element: head, list: tail) && from === head &&
+  //Ici, on vérifie qu'il y a bien une porte entre le premier et le deuxième élément du chemin.
+  tail ===  MyListRooms.cons(element: head2, list: tail2) && doors(from:head, to:head2) &&
+  //On vérifie que la fin du chemin est correcte aussi.
+  path(from: head2, to: to, through: tail)
+}}}})
+
 
 }
 
 func battery (through: Term, level: Term) -> Goal {
-    // TODO
+    return list_size(list: through, size: level)
 }
 
 func winning (through: Term, level: Term) -> Goal {
