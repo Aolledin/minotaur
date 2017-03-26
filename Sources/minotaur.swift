@@ -137,30 +137,3 @@ func winning (through: Term, level: Term) -> Goal {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//TODO
